@@ -1,4 +1,4 @@
 list-action-example
 ===================
 
-Exampe for standalone action
+Example for standalone action
