@@ -57,26 +57,37 @@ class ListAction extends base\Action
 
         $request = Yii::$app->request;
 
-        // Проставляем данные
-        $data = (strtolower($this->requestType) === 'post' && $request->isPost) ? $_POST : $_GET;
-        $this->_filterModel->load(($this->directPopulating) ? $data : [$this->_filterModel->formName() => $data]);
-
         if ($request->isAjax) {
             Yii::$app->response->format = Response::FORMAT_JSON;
         }
 
-        // Здесь определяем что делать при ajax запросе и провале валидации
-        if ($request->isAjax && !$this->_filterModel->validate()) {
+        // Проставляем данные
+        $data = (strtolower($this->requestType) === 'post' && $request->isPost) ? $_POST : $_GET;
+        $this->_filterModel->load(($this->directPopulating) ? $data : [$this->_filterModel->formName() => $data]);
 
-            return (is_callable($this->_validationFailedCallback))
-                ? call_user_func($this->_validationFailedCallback, $this->_filterModel)
-                : [
-                    'error' => current($this->_filterModel->getErrors())
-                ];
-        }
-
-        // Производим выборку в моделей поиска
+        // Производим выборку в модели поиска
         $this->_filterModel->search();
+
+        // Если при поиске произошла ошибка валидации
+        if ($this->_filterModel->hasErrors()) {
+
+            /**
+             * В зависимости от запроса решаем что делать,
+             * если ajax то сбрасываем ошибку, иначе если входящих данных нет, очищаем ошибки
+             */
+            if ($request->isAjax){
+                return (is_callable($this->_validationFailedCallback))
+                    ? call_user_func($this->_validationFailedCallback, $this->_filterModel)
+                    : [
+                        'error' => current($this->_filterModel->getErrors())
+                    ];
+            }
+
+            if (empty($data)) {
+                $this->_filterModel->clearErrors();
+            }
+
+        }
 
         if (!($dataProvider = $this->_filterModel->getDataProvider())) {
             throw new base\ErrorException('Не проинициализирован DataProvider');
@@ -96,7 +107,9 @@ class ListAction extends base\Action
 
         return $this->controller->render($this->view ?: $this->id, [
                 'filterModel' => $this->_filterModel,
-                'dataProvider' => $dataProvider
+                'dataProvider' => $dataProvider,
+                'requestType' => $this->requestType,
+                'directPopulating' => $this->directPopulating
             ]);
 
     }

@@ -15,7 +15,6 @@ class ProductController extends Controller
                 'class' => ListAction::className(),
                 'filterModel' => new ProductSearch(),
                 'directPopulating' => false,
-                'view' => 'index'
             ]
         ];
     }

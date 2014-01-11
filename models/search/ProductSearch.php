@@ -48,7 +48,7 @@ class ProductSearch extends shop\components\FilterModelBase
                 ])
         ]);
 
-        // Если валидация прошла успешно, фильтруем по цене
+        // Если ошибок нет, фильтруем по цене
         if ($this->validate()) {
             $query->where('price <= :price', [':price' => $this->price]);
         }
