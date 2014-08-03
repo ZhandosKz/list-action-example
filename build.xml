@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="YourProject" default="build">
+<project name="deploy-test" default="test">
 	<target name="test" description="test">
 		<exec executable="php" failonerror="true">
 			<arg value="test.php" />
